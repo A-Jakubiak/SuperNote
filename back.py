@@ -232,7 +232,24 @@ def liste_individus(connection_bdd, classe, est_eleve):
 def liste_absences(connection_bdd, nom, prenom, classe):
     """
     Donne la liste des absences d'un individu.
+    :param (sqlite3.Connection): Connection à la base de données
+    :param (str): nom, nom de l'élève
+    :param (str): prenom, prenom de l'élève
+    :param (str): classe, nom de la classe
+    :return: tuple de tuple contenant les informations sur les individus
+    
+    >>> shutil.copy('test_bdd/liste_absences.db', 'bdd_test.db')
+    'bdd_test.db'
+    >>> connection_bdd = sqlite3.connect('bdd_test.db')
+    
+    >>> liste_absences(connection_bdd, 'Doe', 'John', 'classe_test')
+    (1671192000, 1671188400)
+    
+    >>> connection_bdd.close()
     """
+    req_sql = f"SELECT timestamp FROM t_absences INNER JOIN t_individus ON t_absences.id_individus = t_individus.id WHERE nom = '{nom}' AND prenom = '{prenom}'"
+    cursor = connection_bdd.execute(req_sql)
+    return tuple([ x[0] for x in cursor.fetchall()])
 
 # Programme principal
 if __name__=='__main__':
