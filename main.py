@@ -24,6 +24,7 @@ import sqlite3
 import os
 import datetime
 import time
+import shutil
 
 def creer_table(connection_bdd, nom_table, attributs, cles_etrangeres={}):
     """
@@ -79,7 +80,8 @@ def ajouter_classe(connection_bdd, nom_classe, annee = datetime.date.today().yea
     :param (str): nom de la classe
     :param(int): année de la classe
     
-    >>> creer_bdd('bdd_test')
+    >>> shutil.copy('test_bdd/ajouter_classe.db', 'bdd_test.db')
+    'bdd_test.db'
     >>> connection_bdd = sqlite3.connect('bdd_test.db')
     >>> ajouter_classe(connection_bdd, 'classe_test')
     >>> req_sql = 'SELECT nom FROM t_classes'
@@ -104,9 +106,9 @@ def ajouter_individu(connection_bdd, photo, nom, prenom, classes, est_eleve):
     
     
     
-    >>> creer_bdd('bdd_test')
+    >>> shutil.copy('test_bdd/ajouter_individu.db', 'bdd_test.db')
+    'bdd_test.db'
     >>> connection_bdd = sqlite3.connect('bdd_test.db')
-    >>> ajouter_classe(connection_bdd, 'classe_test')
     
     >>> ajouter_individu(connection_bdd, './assets/X.jpeg', 'Doe', 'John', ['classe_test'], True)
     
@@ -130,10 +132,9 @@ def ajouter_absence(connection_bdd, id_individus, timestamp= ( int(time.time()) 
     :param (int): id_individus, id de l'individu.
     :param (int): timestamp, timestamp du début de l'heure de l'absence.
     
-     >>> creer_bdd('bdd_test')
+    >>> shutil.copy('test_bdd/ajouter_absence.db', 'bdd_test.db')
+    'bdd_test.db'
     >>> connection_bdd = sqlite3.connect('bdd_test.db')
-    >>> ajouter_classe(connection_bdd, 'classe_test')
-    >>> ajouter_individu(connection_bdd, './assets/X.jpeg', 'Doe', 'John', ['classe_test'], True)
     
     >>> ajouter_absence(connection_bdd, 1, 1669986000)
     
@@ -154,11 +155,9 @@ def modifier_individu(connection_bdd, id_individu, valeurs):
     :param (int): id_individus, id de l'individu.
     :param (dict): valeurs, dictionnaire contenant les valeurs a modifier
     
-    >>> creer_bdd('bdd_test')
+    >>> shutil.copy('test_bdd/modifier_individu.db', 'bdd_test.db')
+    'bdd_test.db'
     >>> connection_bdd = sqlite3.connect('bdd_test.db')
-    >>> ajouter_classe(connection_bdd, 'classe_test')
-    
-    >>> ajouter_individu(connection_bdd, './assets/X.jpeg', 'Doe', 'John', ['classe_test'], True)
     
     >>> req_sql = 'SELECT * FROM t_individus'
     >>> cursor = connection_bdd.execute(req_sql)
@@ -167,8 +166,7 @@ def modifier_individu(connection_bdd, id_individu, valeurs):
     
     >>> modifier_individu(connection_bdd, 1, {'photo': './assets/X_R.jpeg', 'est_eleve': False})
     
-    >>> req_sql = 'SELECT * FROM t_individus'
-    >>> cursor = connection_bdd.execute(req_sql)
+    >>> cursor = cursor.execute(req_sql)
     >>> cursor.fetchone()
     (1, './assets/X_R.jpeg', 'Doe', 'John', 'classe_test', 0)
     
@@ -182,8 +180,59 @@ def modifier_individu(connection_bdd, id_individu, valeurs):
         if isinstance(valeurs[key], list):
             valeurs[key] = ', '.join(valeurs[key])
         cursor = connection_bdd.cursor()
-        cursor.execute( f"UPDATE t_individus SET {key} = {valeurs[key]} WHERE id={id_individu}")
+        cursor.execute( f"UPDATE t_individus SET {key} = '{valeurs[key]}' WHERE id={id_individu}")
 
+def liste_classe(connection_bdd):
+    """
+    Donne la liste des classes existantes avec leur année.
+    :param (sqlite3.Connection): Connection à la base de données
+    :return: tuple de tuple contenant les informations sur les classes
+    
+    >>> shutil.copy('test_bdd/liste_classe.db', 'bdd_test.db')
+    'bdd_test.db'
+    >>> connection_bdd = sqlite3.connect('bdd_test.db')
+    
+    >>> liste_classe(connection_bdd)
+    (('classe_1', 2022), ('classe_2', 2022), ('classe_3', 2022))
+    >>> connection_bdd.close()
+    
+    """
+    req_sql = 'SELECT nom, annee FROM t_classes'
+    cursor = connection_bdd.execute(req_sql)
+    return tuple(cursor.fetchall())
+
+def liste_individus(connection_bdd, classe, est_eleve):
+    """
+    Donne la liste des individus d'une classe
+    :param (sqlite3.Connection): Connection à la base de données
+    :param (str): classe, nom de la classe
+    :param (bool): est_eleve, booléen qui permet de choisir si on liste les élèves ou non.
+    :return: tuple de tuple contenant les informations sur les individus
+    
+    >>> shutil.copy('test_bdd/liste_individus.db', 'bdd_test.db')
+    'bdd_test.db'
+    >>> connection_bdd = sqlite3.connect('bdd_test.db')
+    
+    >>> liste_individus(connection_bdd, 'classe_test', True)
+    ((None, 'Doe', 'John'), (None, 'Dar Alia', 'Mehdi'))
+    
+    >>> liste_individus(connection_bdd, 'classe_test2', False)
+    ((None, 'Mbappé', 'Kyllian'), (None, 'Ronaldo', 'Cristiano'))
+    
+    >>> liste_individus(connection_bdd, 'classe_test', False)
+    ((None, 'Ronaldo', 'Cristiano'),)
+    
+    >>> connection_bdd.close()
+    """
+    req_sql = f"SELECT photo, nom, prenom FROM t_individus WHERE est_eleve = {int(est_eleve)} AND (l_classes LIKE '%, {classe}%' OR l_classes LIKE '%{classe}, %' OR l_classes = '{classe}')"
+    cursor = connection_bdd.execute(req_sql)
+    return tuple(cursor.fetchall())
+
+
+def liste_absences(connection_bdd, nom, prenom, classe):
+    """
+    Donne la liste des absences d'un individu.
+    """
 
 # Programme principal
 if __name__=='__main__':
