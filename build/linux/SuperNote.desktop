@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=SuperNote
+Exec=SuperNote
+Terminal=false
+Type=Application
+Icon=fr.ajmf.supernote
+StartupWMClass=supernote
+X-AppImage-Version=VERSION
+Comment=Outils de gestion de classes SuperNote.
+MimeType=x-scheme-handler/supernote;
+Categories=GNOME;GTK;Utility;
