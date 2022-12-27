@@ -8,7 +8,7 @@ gi.require_version(
     "Adw",
     "1"
 )
-from pages.individualscrolledwindow import *
+from pages.pageclass import *
 
 
 class pageaddbox(Gtk.Box):
@@ -92,6 +92,9 @@ class pageaddbox(Gtk.Box):
             selection_mode=Gtk.SelectionMode.NONE
         )
 
+        self.listbox2.get_style_context().add_class('boxed-list')
+
+
         self.prfgr_listbox2 = Adw.PreferencesGroup(
             title='Status',
             margin_top=10
@@ -121,6 +124,8 @@ class pageaddbox(Gtk.Box):
         self.listbox3 = Gtk.ListBox(
             selection_mode=Gtk.SelectionMode.NONE
         )
+
+        self.listbox3.get_style_context().add_class('boxed-list')
 
         self.prfgr_listbox3 = Adw.PreferencesGroup(
             title='Classes',

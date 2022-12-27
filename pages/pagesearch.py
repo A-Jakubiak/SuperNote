@@ -8,7 +8,7 @@ gi.require_version(
     "Adw",
     "1"
 )
-from pages.individualscrolledwindow import *
+from pages.pageclass import *
 
 
 class pagesearchbox(Gtk.Box):

@@ -7,7 +7,7 @@ gi.require_version(
     "Adw",
     "1"
 )
-from pages.pageclass import *
+from pages.pageclasslist import *
 from pages.pagesearch import *
 from pages.pageadd import *
 
@@ -127,7 +127,7 @@ class MainWindow(Adw.ApplicationWindow):
             self.on_sq_get_visible_child
         )
 
-        self.page1 = pageclassbox()
+        self.page1 = pageclasslistbox()
 
         self.stack.add_titled(
             self.page1,
@@ -169,8 +169,6 @@ class MainWindow(Adw.ApplicationWindow):
             self.viewswitcherbar.set_reveal(True)
         else:
             self.viewswitcherbar.set_reveal(False)
-
-
 
 
 class MyApp(Adw.Application):

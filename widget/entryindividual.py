@@ -24,7 +24,7 @@ class entryindividual (Gtk.Button):
 
         self.set_margin_top(15)
 
-        self.avatar = Adw.Avatar.new(64, nom, True)
+        self.avatar = Adw.Avatar.new(64, f"{self.nom}, {self.prenom}", True)
         self.box.append(self.avatar)
 
         self.label = Gtk.Label(label=f"{self.nom} {self.prenom}\n - {self.classe}")
