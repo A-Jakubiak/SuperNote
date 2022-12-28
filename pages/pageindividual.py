@@ -13,6 +13,7 @@ gi.require_version(
 from gi.repository import Gtk, Adw, GLib, Gio
 
 from pages.pageindividual import *
+from pages.pageindividualmodifier import *
 class pageindividualbox (Gtk.Box):
     def __init__(self):
         super().__init__(orientation=Gtk.Orientation.VERTICAL)
@@ -238,6 +239,7 @@ class pageindividualbox (Gtk.Box):
         self.editbutton = Gtk.Button(label="Modifer")
         self.editbutton.get_style_context ().add_class ('suggested-action')
         self.editbutton.set_margin_top(30)
+        self.editbutton.connect('clicked', self.leaflet_next)
         self.box.append(self.editbutton)
         self.deletebutton = Gtk.Button(label="Supprimer")
         self.deletebutton.get_style_context ().add_class ('destructive-action')
@@ -245,4 +247,15 @@ class pageindividualbox (Gtk.Box):
         self.box.append(self.deletebutton)
         self.backbutton = Gtk.Button(label="Retour")
         self.backbutton.set_margin_top(10)
+        self.backbutton.connect('clicked', self.leaflet_go_back)
         self.box.append(self.backbutton)
+
+        # page de modification
+        self.modifierpage = pageindividualmodifierbox(self.nom, self.prenom)
+        self.leaflet.append(self.modifierpage)
+
+    def leaflet_go_back(self, widget):
+        self.get_parent().set_visible_child(self.get_parent().get_parent().scrolledwindow)
+
+    def leaflet_next(self, widget):
+        self.leaflet.set_visible_child(self.modifierpage)

@@ -166,12 +166,7 @@ class pageclasslistbox(Gtk.Box):
 
         # ClassIndividual Page
         self.indiduallistpage = pageclassbox(
-            (("User", "Name", "Classe Test", None), ("User", "Name", "Classe Test", None)))
+            (("Doe", "Jhon", "Classe Test", None), ("User", "Name", "Classe Test", None)))
         self.leaflet.append(self.indiduallistpage)
-
-        self.indiduallistpage.backbutton.connect('clicked', self.on_btn_show_mainpage)
     def on_btn_show_individuallistpage(self, widget):
         self.leaflet.set_visible_child(self.indiduallistpage)
-
-    def on_btn_show_mainpage(self, widget):
-        self.leaflet.set_visible_child(self.scrolledwindow)
