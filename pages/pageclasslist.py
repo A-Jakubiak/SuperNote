@@ -166,7 +166,8 @@ class pageclasslistbox(Gtk.Box):
 
         # ClassIndividual Page
         self.indiduallistpage = pageclassbox(
-            (("Doe", "Jhon", "Classe Test", None), ("User", "Name", "Classe Test", None)))
+            (("Doe", "Jhon", ("Classe Test", ), True, None), ("User", "Name", ("Classe Test", ), True, None)))
         self.leaflet.append(self.indiduallistpage)
     def on_btn_show_individuallistpage(self, widget):
         self.leaflet.set_visible_child(self.indiduallistpage)
+        self.get_root().hide_viewswitcher()

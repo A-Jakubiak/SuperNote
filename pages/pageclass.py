@@ -35,21 +35,21 @@ class pageclassbox (Gtk.Box):
         self.scrolledwindow.set_child(self.clamp)
         self.widgetlist = []
         for individual in classmemberlist:
-            self.widgetlist.append(entryindividual(individual[0], individual[1], individual[2], individual[3]))
+            self.widgetlist.append(entryindividual(individual))
             self.box.append(self.widgetlist[len(self.widgetlist)-1])
         self.backbutton=Gtk.Button(label="Retour")
         self.backbutton.set_margin_top(10)
         self.backbutton.connect('clicked', self.leaflet_go_back)
         self.box.append(self.backbutton)
 
-        self.widgetlist[0].connect('clicked', self.btn_go_to_individual)
-
         # page individual
 
-        self.individualpage = pageindividualbox()
-        self.leaflet.append(self.individualpage)
+        for individual in self.widgetlist:
+            individual.connect('clicked', self.btn_go_to_individual)
+            self.leaflet.append(individual.pageindividual)
     def btn_go_to_individual(self, widget):
-        self.leaflet.set_visible_child(self.individualpage)
+        self.leaflet.set_visible_child(widget.pageindividual)
 
     def leaflet_go_back(self, widget):
         self.get_parent().set_visible_child(self.get_parent().get_parent().scrolledwindow)
+        self.get_root().show_viewswitcher()

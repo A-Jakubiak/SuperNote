@@ -170,6 +170,16 @@ class MainWindow(Adw.ApplicationWindow):
         else:
             self.viewswitcherbar.set_reveal(False)
 
+    def hide_viewswitcher(self):
+        self.viewswitcherbar.set_visible(False)
+        self.viewswitcher_wide.set_visible(False)
+        self.viewswitcher_narrow.set_visible(False)
+
+    def show_viewswitcher(self):
+        self.viewswitcherbar.set_visible(True)
+        self.viewswitcher_wide.set_visible(True)
+        self.viewswitcher_narrow.set_visible(True)
+
 
 class MyApp(Adw.Application):
     def __init__(self, **kwargs):

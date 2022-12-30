@@ -12,12 +12,10 @@ gi.require_version(
 )
 from gi.repository import Gtk, Adw, GLib, Gio
 class pageindividualmodifierbox (Gtk.Box):
-    def __init__(self, nom, prenom, l_classe=[]):
+    def __init__(self, individual):
         super().__init__(orientation=Gtk.Orientation.VERTICAL)
 
-        self.prenom = prenom
-        self.nom = nom
-        self.l_classe = l_classe
+        self.individual = individual
 
         self.clamp = Adw.Clamp()
         self.append(self.clamp)
@@ -34,7 +32,7 @@ class pageindividualmodifierbox (Gtk.Box):
 
         self.avatarbutton = Gtk.Button()
         self.avatarbutton.set_halign(3)
-        self.avatar = Adw.Avatar.new(128, f"{self.nom}, {self.prenom}", True)
+        self.avatar = Adw.Avatar.new(128, f"{self.individual[0]}, {self.individual[1]}", True)
         self.avatarbutton.set_child(self.avatar)
         self.avatarbutton.set_margin_top(20)
         self.box.append(self.avatarbutton)
@@ -64,7 +62,7 @@ class pageindividualmodifierbox (Gtk.Box):
             subtitle="Nom de l'individu"
         )
 
-        self.btn_listbox1_1_suffix = Gtk.Entry.new_with_buffer(Gtk.EntryBuffer.new(self.nom, len(self.nom)))
+        self.btn_listbox1_1_suffix = Gtk.Entry.new_with_buffer(Gtk.EntryBuffer.new(self.individual[0], len(self.individual[0])))
         self.btn_listbox1_1_suffix.set_margin_top(10)
         self.btn_listbox1_1_suffix.set_margin_bottom(10)
         self.row_listbox1_1.add_suffix(
@@ -81,7 +79,7 @@ class pageindividualmodifierbox (Gtk.Box):
             subtitle="Prénom de l'individu"
         )
 
-        self.btn_listbox1_2_suffix = Gtk.Entry.new_with_buffer(Gtk.EntryBuffer.new(self.prenom, len(self.prenom)))
+        self.btn_listbox1_2_suffix = Gtk.Entry.new_with_buffer(Gtk.EntryBuffer.new(self.individual[1], len(self.individual[1])))
         self.btn_listbox1_2_suffix.set_margin_top(10)
         self.btn_listbox1_2_suffix.set_margin_bottom(10)
         self.row_listbox1_2.add_suffix(
@@ -177,6 +175,7 @@ class pageindividualmodifierbox (Gtk.Box):
         self.confirmbtn.set_margin_top(10)
         self.confirmbtn.connect('clicked', self.leaflet_go_back)
         self.box.append(self.confirmbtn)
+
 
     def leaflet_go_back(self, widget):
         self.get_parent().set_visible_child(self.get_parent().get_parent().scrolledwindow)

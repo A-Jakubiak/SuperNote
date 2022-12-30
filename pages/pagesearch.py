@@ -8,14 +8,27 @@ gi.require_version(
     "Adw",
     "1"
 )
+from gi.repository import Gtk, Adw, GLib, Gio
 from pages.pageclass import *
+from widget.entryindividual import *
 
 
 class pagesearchbox(Gtk.Box):
     def __init__(self):
+        self.resultlist=[]
+        self.resultwidgets=[]
         super().__init__()
+        self.leaflet = Adw.Leaflet(
+            halign=Gtk.Align.FILL,
+            valign=Gtk.Align.FILL
+        )
+
+        self.leaflet.set_can_unfold(False)
+
+        self.append(self.leaflet)
+
         self.clamp = Adw.Clamp()
-        self.append(self.clamp)
+        self.leaflet.append(self.clamp)
 
         # Boite principal
         self.box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
@@ -42,9 +55,22 @@ class pagesearchbox(Gtk.Box):
         self.box.append(self.scrolledwindow)
 
         # Ajout de résultat
-        self.result = entryindividual("John", "Doe", "Classe Test")
-        self.result2 = entryindividual("Jane", "Doe", "Classe Test")
-        self.result3 = entryindividual("Nobody", "", "Classe Test")
-        self.resultbox.append(self.result)
-        self.resultbox.append(self.result2)
-        self.resultbox.append(self.result3)
+        self.updateresultlist((("John", "Doe", ("Classe Test", ), None), ("Jane", "Doe", ("Classe Test", ), None), ("Nobody", "", ("Classe Test", "Classe Test 2"), None)))
+
+    def updateresultlist(self, rl):
+        self.resultlist = rl
+        for widget in self.resultwidgets:
+            self.resultbox.remove(widget)
+            self.leaflet.remove(widget.pageindividual)
+
+        for individual in self.resultlist:
+            self.resultwidgets.append(entryindividual(individual))
+
+        for widget in self.resultwidgets:
+            self.resultbox.append(widget)
+            self.leaflet.append(widget.pageindividual)
+            widget.connect('clicked', self.btn_go_to_individual)
+
+    def btn_go_to_individual(self, widget):
+        self.leaflet.set_visible_child(widget.pageindividual)
+        self.get_root().hide_viewswitcher()

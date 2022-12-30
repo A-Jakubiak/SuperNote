@@ -11,14 +11,13 @@ gi.require_version(
     "1"
 )
 from gi.repository import Gtk, Adw, GLib, Gio
-
-from pages.pageindividual import *
 from pages.pageindividualmodifier import *
+
+
 class pageindividualbox (Gtk.Box):
-    def __init__(self):
+    def __init__(self, individual):
         super().__init__(orientation=Gtk.Orientation.VERTICAL)
-        self.prenom="John"
-        self.nom = "Doe"
+        self.individual = individual
 
         self.leaflet = Adw.Leaflet(
             halign=Gtk.Align.FILL,
@@ -37,7 +36,7 @@ class pageindividualbox (Gtk.Box):
         self.clamp.set_child(self.box)
         self.scrolledwindow.set_child(self.clamp)
 
-        self.avatar = Adw.Avatar.new(128, f"{self.nom}, {self.prenom}", True)
+        self.avatar = Adw.Avatar.new(128, f"{self.individual[0]}, {self.individual[1]}", True)
         self.avatar.set_margin_top(10)
         self.box.append(self.avatar)
 
@@ -62,7 +61,7 @@ class pageindividualbox (Gtk.Box):
             subtitle="Nom de l'individu"
         )
 
-        self.btn_listbox1_1_suffix = Gtk.Label(label=self.nom)
+        self.btn_listbox1_1_suffix = Gtk.Label(label=self.individual[0])
         self.row_listbox1_1.add_suffix(
             self.btn_listbox1_1_suffix
         )
@@ -77,7 +76,7 @@ class pageindividualbox (Gtk.Box):
             subtitle="Prénom de l'individu"
         )
 
-        self.btn_listbox1_2_suffix = Gtk.Label(label=self.prenom)
+        self.btn_listbox1_2_suffix = Gtk.Label(label=self.individual[1])
         self.row_listbox1_2.add_suffix(
             self.btn_listbox1_2_suffix
         )
@@ -251,11 +250,13 @@ class pageindividualbox (Gtk.Box):
         self.box.append(self.backbutton)
 
         # page de modification
-        self.modifierpage = pageindividualmodifierbox(self.nom, self.prenom)
+        self.modifierpage = pageindividualmodifierbox(self.individual)
         self.leaflet.append(self.modifierpage)
 
     def leaflet_go_back(self, widget):
-        self.get_parent().set_visible_child(self.get_parent().get_parent().scrolledwindow)
+        self.get_parent().set_visible_child(self.get_parent().get_pages()[0].get_child())
+        if str(type((self.get_parent().get_parent()))) == "<class 'pages.pagesearch.pagesearchbox'>":
+            self.get_root().show_viewswitcher()
 
     def leaflet_next(self, widget):
         self.leaflet.set_visible_child(self.modifierpage)
