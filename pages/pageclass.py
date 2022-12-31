@@ -15,7 +15,7 @@ from widget.entryindividual import *
 class pageclassbox (Gtk.Box):
     def __init__(self, classmemberlist):
         super().__init__()
-
+        self.classmemberlist = classmemberlist
         self.leaflet = Adw.Leaflet(
             halign=Gtk.Align.FILL,
             valign=Gtk.Align.FILL
@@ -34,7 +34,7 @@ class pageclassbox (Gtk.Box):
         self.clamp.set_child(self.box)
         self.scrolledwindow.set_child(self.clamp)
         self.widgetlist = []
-        for individual in classmemberlist:
+        for individual in self.classmemberlist:
             self.widgetlist.append(entryindividual(individual))
             self.box.append(self.widgetlist[len(self.widgetlist)-1])
         self.backbutton=Gtk.Button(label="Retour")

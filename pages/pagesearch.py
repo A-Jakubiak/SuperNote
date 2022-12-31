@@ -55,7 +55,7 @@ class pagesearchbox(Gtk.Box):
         self.box.append(self.scrolledwindow)
 
         # Ajout de résultat
-        self.updateresultlist((("John", "Doe", ("Classe Test", ), None), ("Jane", "Doe", ("Classe Test", ), None), ("Nobody", "", ("Classe Test", "Classe Test 2"), None)))
+        self.updateresultlist((("John", "Doe", ("Classe Test", ), None), ("Jane", "Doe", ("Classe Test", ), None), ("Nobody", "", ("Classe Test", "Classe Test 2"), None), ("Test", "test", ("Classe Test 2", ), None)))
 
     def updateresultlist(self, rl):
         self.resultlist = rl

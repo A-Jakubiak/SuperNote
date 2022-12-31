@@ -7,9 +7,11 @@ gi.require_version(
     "Adw",
     "1"
 )
+import os
 from pages.pageclasslist import *
 from pages.pagesearch import *
 from pages.pageadd import *
+from back import *
 
 
 class MainWindow(Adw.ApplicationWindow):
@@ -195,6 +197,9 @@ class MyApp(Adw.Application):
         )
         self.win.present()
 
+
+if 'supernote.db' not in os.listdir():
+    creer_bdd('supernote')
 
 app = MyApp(
     application_id='fr.ajmf.supernote'

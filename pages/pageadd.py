@@ -49,9 +49,6 @@ class pageaddbox(Gtk.Box):
 
         self.listbox1.get_style_context().add_class('boxed-list')
 
-        """self.box_listbox_wrapper.append(
-            self.listbox1
-        )"""
 
         # Row 1
         self.row_listbox1_1 = Adw.ActionRow(
