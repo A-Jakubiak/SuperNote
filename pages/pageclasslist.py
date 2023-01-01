@@ -127,17 +127,24 @@ class pageclasslistbox(Gtk.Box):
         """
         for row in self.rows_listbox:
             self.listbox1.remove(row)
-        connection_bdd = None
+
+        # HACK: L'application crash au bout de 2 ajout de classe si on ne redéfinit pas la liste.
+        self.rows_listbox = []
+
+        lclasse = ()
         try:
             connection_bdd = sqlite3.connect("supernote.db")
+            lclasse = liste_classe(connection_bdd)
+            connection_bdd.close()
         except Exception as e:
+            print(e)
             infobar = Gtk.InfoBar()
             infobar.add_child(Gtk.Label(label=f"Une erreur est survenue. \n\n {e}"))
             infobar.add_button("OK", 1)
             infobar.connect('response', self.removeinfobar)
             self.prepend(infobar)
             return None
-        for classe in liste_classe(connection_bdd):
+        for classe in lclasse:
             # Row 1
             self.rows_listbox.append(Adw.ActionRow(
                 title=f'{classe[0]} | {classe[1]}'
@@ -169,7 +176,6 @@ class pageclasslistbox(Gtk.Box):
             self.listbox1.append(
                 self.rows_listbox[len(self.rows_listbox)-1]
             )
-        connection_bdd.close()
 
 
 
@@ -202,7 +208,11 @@ class pageclasslistbox(Gtk.Box):
             self.prepend(infobar)
             self.btn_listbox2_1_suffix.get_buffer().delete_text(0, self.btn_listbox2_1_suffix.get_buffer().get_length())
             self.generate_class_list()
+            self.get_root().page3.update_class_list()
+            for individual in self.indiduallistpage.widgetlist:
+                individual.pageindividual.modifierpage.update_class_list()
         except Exception as e:
+            print(e)
             infobar = Gtk.InfoBar()
             infobar.add_child(Gtk.Label(label=f"Une erreur est survenue. \n\n {e}"))
             infobar.add_button("OK", 1)
