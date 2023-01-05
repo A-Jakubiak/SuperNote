@@ -110,18 +110,18 @@ def ajouter_individu(connection_bdd, photo, nom, prenom, classes, est_eleve):
     'bdd_test.db'
     >>> connection_bdd = sqlite3.connect('bdd_test.db')
     
-    >>> ajouter_individu(connection_bdd, './assets/X.jpeg', 'Doe', 'John', ['classe_test'], True)
+    >>> ajouter_individu(connection_bdd, './assets/X.jpeg', 'Doe', 'John', [1], True)
     
     >>> req_sql = 'SELECT * FROM t_individus'
     >>> cursor = connection_bdd.execute(req_sql)
     >>> cursor.fetchone()
-    (1, './assets/X.jpeg', 'Doe', 'John', 'classe_test', 1)
+    (1, './assets/X.jpeg', 'Doe', 'John', '1', 1)
     >>> connection_bdd.close()
     >>> os.remove('bdd_test.db')
     
     """
     cursor = connection_bdd.cursor()
-    cursor.execute( f"INSERT INTO t_individus (photo, nom, prenom, l_classes, est_eleve) VALUES ('{photo}', '{nom}', '{prenom}', '{', '.join(classes)}', {int(est_eleve)})")
+    cursor.execute( f"INSERT INTO t_individus (photo, nom, prenom, l_classes, est_eleve) VALUES ('{photo}', '{nom}', '{prenom}', '{', '.join(map(str, classes))}', {int(est_eleve)})")
 
 
 
@@ -162,13 +162,13 @@ def modifier_individu(connection_bdd, id_individu, valeurs):
     >>> req_sql = 'SELECT * FROM t_individus'
     >>> cursor = connection_bdd.execute(req_sql)
     >>> cursor.fetchone()
-    (1, './assets/X.jpeg', 'Doe', 'John', 'classe_test', 1)
+    (1, './assets/X.jpeg', 'Doe', 'John', '1', 1)
     
     >>> modifier_individu(connection_bdd, 1, {'photo': './assets/X_R.jpeg', 'est_eleve': False})
     
     >>> cursor = cursor.execute(req_sql)
     >>> cursor.fetchone()
-    (1, './assets/X_R.jpeg', 'Doe', 'John', 'classe_test', 0)
+    (1, './assets/X_R.jpeg', 'Doe', 'John', '1', 0)
     
     
     >>> connection_bdd.close()
@@ -182,7 +182,7 @@ def modifier_individu(connection_bdd, id_individu, valeurs):
         cursor = connection_bdd.cursor()
         cursor.execute( f"UPDATE t_individus SET {key} = '{valeurs[key]}' WHERE id={id_individu}")
 
-def liste_classe(connection_bdd):
+def liste_classe_nom_et_date(connection_bdd):
     """
     Donne la liste des classes existantes avec leur année.
     :param (sqlite3.Connection): Connection à la base de données
@@ -192,20 +192,106 @@ def liste_classe(connection_bdd):
     'bdd_test.db'
     >>> connection_bdd = sqlite3.connect('bdd_test.db')
     
-    >>> liste_classe(connection_bdd)
+    >>> liste_classe_nom_et_date(connection_bdd)
     (('classe_1', 2022), ('classe_2', 2022), ('classe_3', 2022))
     >>> connection_bdd.close()
     
     """
-    req_sql = 'SELECT nom, annee FROM t_classes'
+    req_sql = 'SELECT nom, annee FROM t_classes ORDER BY annee, nom'
     cursor = connection_bdd.execute(req_sql)
     return tuple(cursor.fetchall())
+
+
+def liste_classe(connection_bdd):
+    """
+    Donne la liste des classes existantes avec leur année.
+    :param (sqlite3.Connection): Connection à la base de données
+    :return: tuple de tuple contenant les informations sur les classes
+
+    >>> shutil.copy('test_bdd/liste_classe.db', 'bdd_test.db')
+    'bdd_test.db'
+    >>> connection_bdd = sqlite3.connect('bdd_test.db')
+
+    >>> liste_classe(connection_bdd)
+    ((1, 'classe_1', 2022), (2, 'classe_2', 2022), (3, 'classe_3', 2022))
+    >>> connection_bdd.close()
+
+    """
+    req_sql = 'SELECT id, nom, annee FROM t_classes ORDER BY annee, nom'
+    cursor = connection_bdd.execute(req_sql)
+    return tuple(cursor.fetchall())
+
+def recuperer_id_depuis_nom_date(connection_bdd, nom, annee):
+    """
+    Donne la liste des classes existantes avec leur année.
+    :param (sqlite3.Connection): Connection à la base de données
+    :param (str): nom de la classe
+    :param (int), année de la classe
+    :return: id de la classe
+
+    >>> shutil.copy('test_bdd/recuperer_id_depuis_nom_date.db', 'bdd_test.db')
+    'bdd_test.db'
+    >>> connection_bdd = sqlite3.connect('bdd_test.db')
+
+    >>> recuperer_id_depuis_nom_date(connection_bdd, 'classe_1', 2022)
+    1
+
+    >>> recuperer_id_depuis_nom_date(connection_bdd, 'classe_2', 2022)
+    2
+
+    >>> recuperer_id_depuis_nom_date(connection_bdd, 'classe_3', 2022)
+    3
+
+    >>> recuperer_id_depuis_nom_date(connection_bdd, 'classe_3', 2021)
+
+    >>> connection_bdd.close()
+
+    """
+    req_sql = f'SELECT id FROM t_classes WHERE nom="{nom}" AND annee={annee}'
+    cursor = connection_bdd.execute(req_sql)
+    response = cursor.fetchall()
+    if len(response)==0:
+        return None
+    return response[0][0]
+
+def recuperer_nom_date_depuis_id(connection_bdd, id):
+    """
+    Donne la liste des classes existantes avec leur année.
+    :param (sqlite3.Connection): Connection à la base de données
+    :param (str): nom de la classe
+    :param (int), année de la classe
+    :return: id de la classe
+
+    >>> shutil.copy('test_bdd/recuperer_nom_date_depuis_id.db', 'bdd_test.db')
+    'bdd_test.db'
+    >>> connection_bdd = sqlite3.connect('bdd_test.db')
+
+    >>> recuperer_nom_date_depuis_id(connection_bdd, 1)
+    ('classe_1', 2022)
+
+    >>> recuperer_nom_date_depuis_id(connection_bdd, 2)
+    ('classe_2', 2022)
+
+    >>> recuperer_nom_date_depuis_id(connection_bdd, 3)
+    ('classe_3', 2022)
+
+    >>> recuperer_nom_date_depuis_id(connection_bdd, 4)
+
+    >>> connection_bdd.close()
+
+    """
+    req_sql = f'SELECT nom, annee FROM t_classes WHERE id={id}'
+    cursor = connection_bdd.execute(req_sql)
+    response = cursor.fetchall()
+    if len(response) == 0:
+        return None
+    return response[0]
 
 def liste_individus(connection_bdd, classe, est_eleve):
     """
     Donne la liste des individus d'une classe
     :param (sqlite3.Connection): Connection à la base de données
-    :param (str): classe, nom de la classe
+    :param (int): id de la classe
     :param (bool): est_eleve, booléen qui permet de choisir si on liste les élèves ou non.
     :return: tuple de tuple contenant les informations sur les individus
     
@@ -213,13 +299,13 @@ def liste_individus(connection_bdd, classe, est_eleve):
     'bdd_test.db'
     >>> connection_bdd = sqlite3.connect('bdd_test.db')
     
-    >>> liste_individus(connection_bdd, 'classe_test', True)
+    >>> liste_individus(connection_bdd, 1, True)
     ((None, 'Doe', 'John'), (None, 'Dar Alia', 'Mehdi'))
     
-    >>> liste_individus(connection_bdd, 'classe_test2', False)
+    >>> liste_individus(connection_bdd, 2, False)
     ((None, 'Mbappé', 'Kyllian'), (None, 'Ronaldo', 'Cristiano'))
     
-    >>> liste_individus(connection_bdd, 'classe_test', False)
+    >>> liste_individus(connection_bdd, 1, False)
     ((None, 'Ronaldo', 'Cristiano'),)
     
     >>> connection_bdd.close()
@@ -235,19 +321,19 @@ def liste_absences(connection_bdd, nom, prenom, classe):
     :param (sqlite3.Connection): Connection à la base de données
     :param (str): nom, nom de l'élève
     :param (str): prenom, prenom de l'élève
-    :param (str): classe, nom de la classe
+    :param (str): classe, id de la classe
     :return: tuple de tuple contenant les informations sur les individus
     
     >>> shutil.copy('test_bdd/liste_absences.db', 'bdd_test.db')
     'bdd_test.db'
     >>> connection_bdd = sqlite3.connect('bdd_test.db')
     
-    >>> liste_absences(connection_bdd, 'Doe', 'John', 'classe_test')
+    >>> liste_absences(connection_bdd, 'Doe', 'John', 1)
     (1671192000, 1671188400)
     
     >>> connection_bdd.close()
     """
-    req_sql = f"SELECT timestamp FROM t_absences INNER JOIN t_individus ON t_absences.id_individus = t_individus.id WHERE nom = '{nom}' AND prenom = '{prenom}'"
+    req_sql = f"SELECT timestamp FROM t_absences INNER JOIN t_individus ON t_absences.id_individus = t_individus.id WHERE nom = '{nom}' AND prenom = '{prenom}' AND (l_classes LIKE '%, {classe}%' OR l_classes LIKE '%{classe}, %' OR l_classes = '{classe}')"
     cursor = connection_bdd.execute(req_sql)
     return tuple([ x[0] for x in cursor.fetchall()])
 

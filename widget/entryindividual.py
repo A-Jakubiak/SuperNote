@@ -11,6 +11,8 @@ gi.require_version(
     "1"
 )
 from gi.repository import Gtk, Adw
+from back import *
+import sqlite3
 
 
 class entryindividual (Gtk.Button):
@@ -30,9 +32,15 @@ class entryindividual (Gtk.Button):
         self.avatar = Adw.Avatar.new(64, f"{individual[0]}, {individual[1]}", True)
         self.box.append(self.avatar)
 
-        self.label = Gtk.Label(label=f"{individual[0]} {individual[1]}\n - {', '.join(individual[2])}")
+        self.label = Gtk.Label(label=f'{individual[0]} {individual[1]}\n - {"; ".join((map(self.id_vers_classe,individual[2])))}')
         self.label.set_hexpand(True)
         self.label.set_halign(Gtk.Align(1))
         self.box.append(self.label)
 
         self.pageindividual = pageindividualbox(individual)
+
+    def id_vers_classe(self, id):
+        connection_bdd = sqlite3.connect("supernote.db")
+        to_return = ', '.join(map(str,recuperer_nom_date_depuis_id(connection_bdd, id)))
+        connection_bdd.close()
+        return to_return

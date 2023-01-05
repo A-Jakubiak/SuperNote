@@ -128,6 +128,8 @@ class pageindividualmodifierbox (Gtk.Box):
         )
 
         self.btn_listbox2_1_suffix = Gtk.Switch()
+        if self.individual[3] == True:
+            self.btn_listbox2_1_suffix.set_active(True)
         self.btn_listbox2_1_suffix.set_margin_top(15)
         self.btn_listbox2_1_suffix.set_margin_bottom(15)
         self.row_listbox2_1.add_suffix(
@@ -185,11 +187,17 @@ class pageindividualmodifierbox (Gtk.Box):
         for classe in liste_classe(connection_bdd):
 
             self.rows_listbox3.append(Adw.ActionRow(
-                title=f"{classe[0]}, {classe[1]}",
-                subtitle=f"Ajoute l'individu à la classe {classe[0]}."
+                title=f"{classe[1]}, {classe[2]}",
+                subtitle=f"Ajoute l'individu à la classe {classe[1]}."
             ))
 
+            self.rows_listbox3[len(self.rows_listbox3)-1].classid=classe[0]
+
             self.rows_listbox3[len(self.rows_listbox3)-1].suffix = Gtk.Switch()
+
+            if classe[0] in self.individual[2]:
+                self.rows_listbox3[len(self.rows_listbox3) - 1].suffix.set_active(True)
+
             self.rows_listbox3[len(self.rows_listbox3)-1].suffix.set_margin_top(15)
             self.rows_listbox3[len(self.rows_listbox3)-1].suffix.set_margin_bottom(15)
             self.rows_listbox3[len(self.rows_listbox3)-1].add_suffix(

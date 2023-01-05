@@ -114,7 +114,7 @@ class pageclasslistbox(Gtk.Box):
 
         # ClassIndividual Page
         self.indiduallistpage = pageclassbox(
-            (("Doe", "Jhon", ("Classe Test",), True, None), ("User", "Name", ("Classe Test",), True, None)))
+            (("Doe", "Jhon", (1,), True, None), ("User", "Name", (1,), True, None)))
         self.leaflet.append(self.indiduallistpage)
 
     def on_btn_show_individuallistpage(self, widget):
@@ -147,7 +147,8 @@ class pageclasslistbox(Gtk.Box):
         for classe in lclasse:
             # Row 1
             self.rows_listbox.append(Adw.ActionRow(
-                title=f'{classe[0]} | {classe[1]}'
+                title=classe[1],
+                subtitle=classe[2]
             ))
 
             self.rows_listbox[len(self.rows_listbox)-1].suffix1 = Gtk.Button(
@@ -196,7 +197,7 @@ class pageclasslistbox(Gtk.Box):
             return None
         connection_bdd = sqlite3.connect("supernote.db")
         try:
-            for classe in liste_classe(connection_bdd):
+            for classe in liste_classe_nom_et_date(connection_bdd):
                 if nom_classe == classe[0] and annee_classe == classe[1]:
                     raise Exception("La classe existe déja.")
             ajouter_classe(connection_bdd, nom_classe, annee_classe)

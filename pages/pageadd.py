@@ -177,9 +177,11 @@ class pageaddbox(Gtk.Box):
         for classe in liste_classe(connection_bdd):
 
             self.rows_listbox3.append(Adw.ActionRow(
-                title=f"{classe[0]}, {classe[1]}",
-                subtitle=f"Ajoute l'individu à la classe {classe[0]}."
+                title=f"{classe[1]}, {classe[2]}",
+                subtitle=f"Ajoute l'individu à la classe {classe[1]}."
             ))
+
+            self.rows_listbox3[len(self.rows_listbox3)-1].classid = classe[0]
 
             self.rows_listbox3[len(self.rows_listbox3)-1].suffix = Gtk.Switch()
             self.rows_listbox3[len(self.rows_listbox3)-1].suffix.set_margin_top(15)
