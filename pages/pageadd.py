@@ -1,4 +1,6 @@
 import gi
+import shutil
+import uuid
 
 gi.require_version(
     "Gtk",
@@ -38,6 +40,16 @@ class pageaddbox(Gtk.Box):
         self.avatarbutton.set_child(self.avatar)
         self.avatarbutton.set_margin_top(20)
         self.box.append(self.avatarbutton)
+
+        self.btn_supp_photo = Gtk.Button(label = 'Supprimer')
+        self.btn_supp_photo.get_style_context().add_class('destructive-action')
+        self.btn_supp_photo.set_halign(3)
+        self.box.append(self.btn_supp_photo)
+        self.btn_supp_photo.set_margin_top(10)
+        self.btn_supp_photo.set_margin_bottom(10)
+        self.btn_supp_photo.set_visible(False)
+        self.btn_supp_photo.connect('clicked', self.supp_photo)
+
         self.filechooserdialog = Gtk.FileChooserNative.new(title="Sélectionner une photo.",
                                   parent=self.get_root(), action=Gtk.FileChooserAction.OPEN)
         self.filechooserdialog.set_transient_for(self.get_root())
@@ -152,6 +164,7 @@ class pageaddbox(Gtk.Box):
 
         self.confirmbtn = Gtk.Button(label='Ajouter')
         self.confirmbtn.set_margin_top(10)
+        self.confirmbtn.connect('clicked', self.bouton_ajouter_individu)
         self.box.append(self.confirmbtn)
 
     def update_class_list(self):
@@ -202,5 +215,45 @@ class pageaddbox(Gtk.Box):
         if response == Gtk.ResponseType.ACCEPT:
             file = dialog.get_file()
             filename = file.get_path()
-            self.avatar.file = file
+            self.avatar.file = filename
             self.avatar.set_custom_image(Gdk.Texture.new_from_file(file))
+            self.btn_supp_photo.set_visible(True)
+
+    def supp_photo(self, widget):
+        self.btn_supp_photo.set_visible(False)
+        self.new_avatar()
+
+    def bouton_ajouter_individu(self, widget):
+        photo = self.avatar.file
+        if photo == None:
+            chemin_photo = None
+        else:
+            chemin_photo = f"./img/{uuid.uuid4()}.{photo.split('.')[::-1][0]}"
+            shutil.copy(photo, chemin_photo)
+        nom_individu = self.btn_listbox1_1_suffix.get_buffer().get_text()
+        prenom_individu = self.btn_listbox1_2_suffix.get_buffer().get_text()
+        est_eleve = self.btn_listbox2_1_suffix.get_state()
+        l_classe = []
+        for row in self.rows_listbox3:
+            if row.suffix.get_state():
+                l_classe.append(row.classid)
+        connection_bdd = sqlite3.connect('supernote.db')
+        ajouter_individu(connection_bdd, chemin_photo, nom_individu, prenom_individu, l_classe, est_eleve)
+        connection_bdd.commit()
+        connection_bdd.close()
+        self.btn_listbox1_1_suffix.get_buffer().delete_text(0, self.btn_listbox1_1_suffix.get_buffer().get_length())
+        self.btn_listbox1_2_suffix.get_buffer().delete_text(0, self.btn_listbox1_2_suffix.get_buffer().get_length())
+        self.btn_listbox2_1_suffix.set_active(False)
+        for row in self.rows_listbox3:
+            row.suffix.set_active(False)
+        self.new_avatar()
+    def new_avatar(self):
+        self.box.remove(self.avatarbutton)
+        self.avatarbutton = Gtk.Button()
+        self.avatarbutton.connect("clicked", self.show_file_chooser)
+        self.avatarbutton.set_halign(3)
+        self.avatar = Adw.Avatar.new(128, "", True)
+        self.avatar.file = None
+        self.avatarbutton.set_child(self.avatar)
+        self.avatarbutton.set_margin_top(20)
+        self.box.prepend(self.avatarbutton)
