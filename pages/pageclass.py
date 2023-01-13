@@ -53,3 +53,5 @@ class pageclassbox (Gtk.Box):
     def leaflet_go_back(self, widget):
         self.get_parent().set_visible_child(self.get_parent().get_parent().scrolledwindow)
         self.get_root().show_viewswitcher()
+        self.get_parent().remove(self.get_parent().get_pages()[-1].get_child())
+

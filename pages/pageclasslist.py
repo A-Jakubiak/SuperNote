@@ -113,11 +113,13 @@ class pageclasslistbox(Gtk.Box):
         self.listbox2.append(self.addbtn)
 
         # ClassIndividual Page
-        self.indiduallistpage = pageclassbox(
-            (("Doe", "Jhon", (1,), True, None), ("User", "Name", (1,), True, None)))
-        self.leaflet.append(self.indiduallistpage)
+
 
     def on_btn_show_individuallistpage(self, widget):
+        connection_bdd= sqlite3.connect('supernote.db')
+        self.indiduallistpage = pageclassbox(
+            liste_individus(connection_bdd, widget.classe))
+        self.leaflet.append(self.indiduallistpage)
         self.leaflet.set_visible_child(self.indiduallistpage)
         self.get_root().hide_viewswitcher()
 
@@ -156,7 +158,7 @@ class pageclasslistbox(Gtk.Box):
                 halign=Gtk.Align.CENTER,
                 valign=Gtk.Align.CENTER,
             )
-
+            self.rows_listbox[len(self.rows_listbox) - 1].suffix1.classe = classe[0]
             self.rows_listbox[len(self.rows_listbox)-1].suffix1.connect(
                 'clicked',
                 self.on_btn_show_individuallistpage

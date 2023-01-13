@@ -287,7 +287,7 @@ def recuperer_nom_date_depuis_id(connection_bdd, id):
         return None
     return response[0]
 
-def liste_individus(connection_bdd, classe, est_eleve):
+def liste_individus(connection_bdd, classe, est_eleve = None):
     """
     Donne la liste des individus d'une classe
     :param (sqlite3.Connection): Connection à la base de données
@@ -300,19 +300,22 @@ def liste_individus(connection_bdd, classe, est_eleve):
     >>> connection_bdd = sqlite3.connect('bdd_test.db')
     
     >>> liste_individus(connection_bdd, 1, True)
-    ((None, 'Doe', 'John'), (None, 'Dar Alia', 'Mehdi'))
+    (('Doe', 'John', (1,), True, None), ('Dar Alia', 'Mehdi', (1,), True, None))
     
     >>> liste_individus(connection_bdd, 2, False)
-    ((None, 'Mbappé', 'Kyllian'), (None, 'Ronaldo', 'Cristiano'))
+    (('Mbappé', 'Kyllian', (2,), False, None), ('Ronaldo', 'Cristiano', (1, 2), False, None))
     
     >>> liste_individus(connection_bdd, 1, False)
-    ((None, 'Ronaldo', 'Cristiano'),)
+    (('Ronaldo', 'Cristiano', (1, 2), False, None),)
     
     >>> connection_bdd.close()
     """
-    req_sql = f"SELECT photo, nom, prenom FROM t_individus WHERE est_eleve = {int(est_eleve)} AND (l_classes LIKE '%, {classe}%' OR l_classes LIKE '%{classe}, %' OR l_classes = '{classe}')"
+    if est_eleve != None:
+        req_sql = f"SELECT nom, prenom, l_classes, est_eleve, photo FROM t_individus WHERE est_eleve = {int(est_eleve)} AND (l_classes LIKE '%, {classe}%' OR l_classes LIKE '%{classe}, %' OR l_classes = '{classe}')"
+    else:
+        req_sql = f"SELECT nom, prenom, l_classes, est_eleve, photo FROM t_individus WHERE (l_classes LIKE '%, {classe}%' OR l_classes LIKE '%{classe}, %' OR l_classes = '{classe}')"
     cursor = connection_bdd.execute(req_sql)
-    return tuple(cursor.fetchall())
+    return tuple( (x[0],x[1],tuple(map(int, x[2].split(', '))), bool(x[3]), x[4]) for x in tuple(cursor.fetchall()))
 
 
 def liste_absences(connection_bdd, nom, prenom, classe):
@@ -336,6 +339,33 @@ def liste_absences(connection_bdd, nom, prenom, classe):
     req_sql = f"SELECT timestamp FROM t_absences INNER JOIN t_individus ON t_absences.id_individus = t_individus.id WHERE nom = '{nom}' AND prenom = '{prenom}' AND (l_classes LIKE '%, {classe}%' OR l_classes LIKE '%{classe}, %' OR l_classes = '{classe}')"
     cursor = connection_bdd.execute(req_sql)
     return tuple([ x[0] for x in cursor.fetchall()])
+
+"""def supp_classe(connection_bdd, id_classe):
+    """
+    Supprime la classe donnée en paramètre.
+    :param connection_bdd: connection à la base de donnée
+    :type connection_bdd: sqlite3.connection
+    :param id_classe: id de la classe
+    :type id_classe: int
+
+    >>> shutil.copy('test_bdd/supp_classe.db', 'bdd_test.db')
+    'bdd_test.db'
+    >>> connection_bdd = sqlite3.connect('bdd_test.db')
+
+    >>> supp_classe(connection_bdd, 1)
+
+    >>> liste_classe(connection_bdd)
+    ()
+    >>> connection_bdd.close()
+
+    """
+    for individu in liste_individus(connection_bdd, id_classe):
+        l_classe = list(individu[2])
+        l_classe.remove(id_classe)
+        modifier_individu(connection_bdd, individu[0], {'l_classes': ', '.join(l_classe)})
+    req_sql = f'DELETE FROM t_classes WHERE id = {id_classe}'"""
+
+
 
 # Programme principal
 if __name__=='__main__':
