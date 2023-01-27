@@ -1,3 +1,5 @@
+import sqlite3
+
 import gi
 
 gi.require_version(
@@ -47,6 +49,8 @@ class pagesearchbox(Gtk.Box):
         # Barre de recherche
         self.searchentry = Gtk.SearchEntry()
         self.searchentry.set_margin_top(15)
+        self.searchentry.set_hexpand(True)
+        self.searchentry.connect('search-changed', self.search)
 
         # Ajout de la barre de recherche dans la boite pricipal
         self.box.append(self.searchentry)
@@ -54,14 +58,17 @@ class pagesearchbox(Gtk.Box):
         # Ajout de la boite de résultat dans la boite pricipal
         self.box.append(self.scrolledwindow)
 
-        # Ajout de résultat
-        self.updateresultlist((("John", "Doe", (1, ), None), ("Jane", "Doe", (1, ), None), ("Nobody", "", (1, 2), None), ("Test", "test", (2, ), None)))
+        connection_bdd = sqlite3.connect('supernote.db')
+        self.updateresultlist(recherche_individu(connection_bdd, ''))
+        connection_bdd.close()
 
     def updateresultlist(self, rl):
         self.resultlist = rl
         for widget in self.resultwidgets:
             self.resultbox.remove(widget)
             self.leaflet.remove(widget.pageindividual)
+
+        self.resultwidgets = []
 
         for individual in self.resultlist:
             self.resultwidgets.append(entryindividual(individual))
@@ -71,6 +78,11 @@ class pagesearchbox(Gtk.Box):
             self.leaflet.append(widget.pageindividual)
             widget.connect('clicked', self.btn_go_to_individual)
 
+
+    def search(self, widget):
+        connection_bdd = sqlite3.connect('supernote.db')
+        self.updateresultlist(recherche_individu(connection_bdd, widget.get_text()))
+        connection_bdd.close()
     def btn_go_to_individual(self, widget):
         self.leaflet.set_visible_child(widget.pageindividual)
         self.get_root().hide_viewswitcher()

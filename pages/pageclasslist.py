@@ -117,10 +117,10 @@ class pageclasslistbox(Gtk.Box):
 
     def on_btn_show_individuallistpage(self, widget):
         connection_bdd= sqlite3.connect('supernote.db')
-        self.indiduallistpage = pageclassbox(
+        self.individuallistpage = pageclassbox(
             liste_individus(connection_bdd, widget.classe))
-        self.leaflet.append(self.indiduallistpage)
-        self.leaflet.set_visible_child(self.indiduallistpage)
+        self.leaflet.append(self.individuallistpage)
+        self.leaflet.set_visible_child(self.individuallistpage)
         self.get_root().hide_viewswitcher()
 
     def generate_class_list(self):
@@ -153,6 +153,8 @@ class pageclasslistbox(Gtk.Box):
                 subtitle=classe[2]
             ))
 
+            self.rows_listbox[len(self.rows_listbox) - 1].classe = classe[0]
+
             self.rows_listbox[len(self.rows_listbox)-1].suffix1 = Gtk.Button(
                 label='Accéder',
                 halign=Gtk.Align.CENTER,
@@ -172,6 +174,9 @@ class pageclasslistbox(Gtk.Box):
             self.rows_listbox[len(self.rows_listbox)-1].suffix2.get_style_context().add_class('destructive-action')
             self.rows_listbox[len(self.rows_listbox)-1].suffix2.set_margin_top(13)
             self.rows_listbox[len(self.rows_listbox)-1].suffix2.set_margin_bottom(13)
+
+            self.rows_listbox[len(self.rows_listbox) - 1].suffix2.connect('clicked', self.btn_supprimer_classe)
+
             self.rows_listbox[len(self.rows_listbox)-1].add_suffix(
                 self.rows_listbox[len(self.rows_listbox)-1].suffix2
             )
@@ -212,8 +217,6 @@ class pageclasslistbox(Gtk.Box):
             self.btn_listbox2_1_suffix.get_buffer().delete_text(0, self.btn_listbox2_1_suffix.get_buffer().get_length())
             self.generate_class_list()
             self.get_root().page3.update_class_list()
-            for individual in self.indiduallistpage.widgetlist:
-                individual.pageindividual.modifierpage.update_class_list()
         except Exception as e:
             print(e)
             infobar = Gtk.InfoBar()
@@ -223,6 +226,19 @@ class pageclasslistbox(Gtk.Box):
             self.prepend(infobar)
         finally:
             connection_bdd.close()
+
+    def btn_supprimer_classe(self, widget):
+        """
+        Fonction pour supprimer une classe.
+        :return:
+        :rtype:
+        """
+        print(widget.get_parent().get_parent().get_parent().classe)
+        id_classe = widget.get_parent().get_parent().get_parent().classe
+        connection_bdd = sqlite3.connect("supernote.db")
+        supp_classe(connection_bdd, id_classe)
+        connection_bdd.close()
+        self.generate_class_list()
 
 
     def removeinfobar(self, widget, response):

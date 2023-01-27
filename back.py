@@ -17,14 +17,15 @@ __date__ = "20221202"
 """
 
 # Modules externes
-#from exemples_ecript import *
-#import random
+# from exemples_ecript import *
+# import random
 
 import sqlite3
 import os
 import datetime
 import time
 import shutil
+
 
 def creer_table(connection_bdd, nom_table, attributs, cles_etrangeres={}):
     """
@@ -55,6 +56,7 @@ def creer_table(connection_bdd, nom_table, attributs, cles_etrangeres={}):
     req_sql += ");"
     cursor.execute(req_sql)
 
+
 def creer_bdd(nom_bdd):
     """
     créer une base de donnée avec les tables pour l'application
@@ -66,14 +68,16 @@ def creer_bdd(nom_bdd):
     >>> os.remove('bdd_test.db')
     """
     connection_bdd = sqlite3.connect(nom_bdd + '.db')
-    creer_table(connection_bdd,'t_classes', {'nom': 'TEXT', 'annee': 'INTEGER'})
-    creer_table(connection_bdd,'t_individus', {'photo': 'TEXT', 'nom': 'INTEGER', 'prenom': 'TEXT', 'l_classes': 'TEXT', 'est_eleve': 'INTEGER'})
-    creer_table(connection_bdd,'t_absences', {'timestamp': 'INTEGER', 'id_individus': 'INTEGER'}, {'id_individus': 't_individus.id'})
+    creer_table(connection_bdd, 't_classes', {'nom': 'TEXT', 'annee': 'INTEGER'})
+    creer_table(connection_bdd, 't_individus',
+                {'photo': 'TEXT', 'nom': 'INTEGER', 'prenom': 'TEXT', 'l_classes': 'TEXT', 'est_eleve': 'INTEGER'})
+    creer_table(connection_bdd, 't_absences', {'timestamp': 'INTEGER', 'id_individus': 'INTEGER'},
+                {'id_individus': 't_individus.id'})
     connection_bdd.commit()
     connection_bdd.close()
 
 
-def ajouter_classe(connection_bdd, nom_classe, annee = datetime.date.today().year):
+def ajouter_classe(connection_bdd, nom_classe, annee=datetime.date.today().year):
     """
     ajoute une classe à la table t_classes
     :param (sqlite3.Connection): Connection à la base de données
@@ -92,7 +96,8 @@ def ajouter_classe(connection_bdd, nom_classe, annee = datetime.date.today().yea
     >>> os.remove('bdd_test.db') 
     """
     cursor = connection_bdd.cursor()
-    cursor.execute( f"INSERT INTO t_classes (nom, annee) VALUES ('{nom_classe}', {annee})")
+    cursor.execute(f"INSERT INTO t_classes (nom, annee) VALUES (?, ?)", (nom_classe, annee))
+
 
 def ajouter_individu(connection_bdd, photo, nom, prenom, classes, est_eleve):
     """
@@ -121,11 +126,11 @@ def ajouter_individu(connection_bdd, photo, nom, prenom, classes, est_eleve):
     
     """
     cursor = connection_bdd.cursor()
-    cursor.execute( f"INSERT INTO t_individus (photo, nom, prenom, l_classes, est_eleve) VALUES ('{photo}', '{nom}', '{prenom}', '{', '.join(map(str, classes))}', {int(est_eleve)})")
+    cursor.execute(
+        f"INSERT INTO t_individus (photo, nom, prenom, l_classes, est_eleve) VALUES (?, ?, ?, ?, ?)", (photo, nom, prenom, ', '.join(map(str, classes)), int(est_eleve)))
 
 
-
-def ajouter_absence(connection_bdd, id_individus, timestamp= ( int(time.time()) // (60*60) ) * 60 * 60 ):
+def ajouter_absence(connection_bdd, id_individus, timestamp=(int(time.time()) // (60 * 60)) * 60 * 60):
     """
     ajoute une absence a un individu.
     :param (sqlite3.Connection): Connection à la base de données
@@ -146,7 +151,8 @@ def ajouter_absence(connection_bdd, id_individus, timestamp= ( int(time.time()) 
     >>> os.remove('bdd_test.db')
     """
     cursor = connection_bdd.cursor()
-    cursor.execute( f"INSERT INTO t_absences (timestamp, id_individus) VALUES ({timestamp}, {id_individus})")
+    cursor.execute(f"INSERT INTO t_absences (timestamp, id_individus) VALUES (?, ?)", (timestamp, id_individus))
+
 
 def modifier_individu(connection_bdd, id_individu, valeurs):
     """
@@ -180,7 +186,8 @@ def modifier_individu(connection_bdd, id_individu, valeurs):
         if isinstance(valeurs[key], list):
             valeurs[key] = ', '.join(valeurs[key])
         cursor = connection_bdd.cursor()
-        cursor.execute( f"UPDATE t_individus SET {key} = '{valeurs[key]}' WHERE id={id_individu}")
+        cursor.execute(f"UPDATE t_individus SET {key} = ? WHERE id=?", (valeurs[key], id_individu))
+
 
 def liste_classe_nom_et_date(connection_bdd):
     """
@@ -221,6 +228,7 @@ def liste_classe(connection_bdd):
     cursor = connection_bdd.execute(req_sql)
     return tuple(cursor.fetchall())
 
+
 def recuperer_id_depuis_nom_date(connection_bdd, nom, annee):
     """
     Donne la liste des classes existantes avec leur année.
@@ -247,12 +255,13 @@ def recuperer_id_depuis_nom_date(connection_bdd, nom, annee):
     >>> connection_bdd.close()
 
     """
-    req_sql = f'SELECT id FROM t_classes WHERE nom="{nom}" AND annee={annee}'
-    cursor = connection_bdd.execute(req_sql)
+    req_sql = f'SELECT id FROM t_classes WHERE nom=? AND annee=?'
+    cursor = connection_bdd.execute(req_sql, (nom, annee))
     response = cursor.fetchall()
-    if len(response)==0:
+    if len(response) == 0:
         return None
     return response[0][0]
+
 
 def recuperer_nom_date_depuis_id(connection_bdd, id):
     """
@@ -280,14 +289,15 @@ def recuperer_nom_date_depuis_id(connection_bdd, id):
     >>> connection_bdd.close()
 
     """
-    req_sql = f'SELECT nom, annee FROM t_classes WHERE id={id}'
-    cursor = connection_bdd.execute(req_sql)
+    req_sql = f'SELECT nom, annee FROM t_classes WHERE id=?'
+    cursor = connection_bdd.execute(req_sql, (id, ))
     response = cursor.fetchall()
     if len(response) == 0:
         return None
     return response[0]
 
-def liste_individus(connection_bdd, classe, est_eleve = None):
+
+def liste_individus(connection_bdd, classe, est_eleve=None):
     """
     Donne la liste des individus d'une classe
     :param (sqlite3.Connection): Connection à la base de données
@@ -310,12 +320,49 @@ def liste_individus(connection_bdd, classe, est_eleve = None):
     
     >>> connection_bdd.close()
     """
+    cursor = None
     if est_eleve != None:
-        req_sql = f"SELECT nom, prenom, l_classes, est_eleve, photo FROM t_individus WHERE est_eleve = {int(est_eleve)} AND (l_classes LIKE '%, {classe}%' OR l_classes LIKE '%{classe}, %' OR l_classes = '{classe}')"
+        req_sql = f"SELECT nom, prenom, l_classes, est_eleve, photo FROM t_individus WHERE est_eleve = ? AND (l_classes LIKE ? OR l_classes LIKE ? OR l_classes = ?)"
+        cursor = connection_bdd.execute(req_sql, (int(est_eleve), f'%, {classe}%', f'%{classe}, %', f'{classe}'))
     else:
-        req_sql = f"SELECT nom, prenom, l_classes, est_eleve, photo FROM t_individus WHERE (l_classes LIKE '%, {classe}%' OR l_classes LIKE '%{classe}, %' OR l_classes = '{classe}')"
-    cursor = connection_bdd.execute(req_sql)
-    return tuple( (x[0],x[1],tuple(map(int, x[2].split(', '))), bool(x[3]), x[4]) for x in tuple(cursor.fetchall()))
+        req_sql = f"SELECT nom, prenom, l_classes, est_eleve, photo FROM t_individus WHERE (l_classes LIKE ? OR l_classes LIKE ? OR l_classes = ?)"
+        cursor = connection_bdd.execute(req_sql, (f'%, {classe}%', f'%{classe}, %', f'{classe}'))
+
+    return tuple((x[0], x[1], tuple(map(int, x[2].split(', '))), bool(x[3]), x[4]) for x in tuple(cursor.fetchall()))
+
+
+def liste_individus_avec_id(connection_bdd, classe, est_eleve=None):
+    """
+    Donne la liste des individus d'une classe
+    :param (sqlite3.Connection): Connection à la base de données
+    :param (int): id de la classe
+    :param (bool): est_eleve, booléen qui permet de choisir si on liste les élèves ou non.
+    :return: tuple de tuple contenant les informations sur les individus
+
+    >>> shutil.copy('test_bdd/liste_individus.db', 'bdd_test.db')
+    'bdd_test.db'
+    >>> connection_bdd = sqlite3.connect('bdd_test.db')
+
+    >>> liste_individus_avec_id(connection_bdd, 1, True)
+    ((1, 'Doe', 'John', (1,), True, None), (4, 'Dar Alia', 'Mehdi', (1,), True, None))
+
+    >>> liste_individus_avec_id(connection_bdd, 2, False)
+    ((2, 'Mbappé', 'Kyllian', (2,), False, None), (3, 'Ronaldo', 'Cristiano', (1, 2), False, None))
+
+    >>> liste_individus_avec_id(connection_bdd, 1, False)
+    ((3, 'Ronaldo', 'Cristiano', (1, 2), False, None),)
+
+    >>> connection_bdd.close()
+    """
+    cursor = None
+    if est_eleve is not None:
+        req_sql = f"SELECT id, nom, prenom, l_classes, est_eleve, photo FROM t_individus WHERE est_eleve = ? AND (l_classes LIKE ? OR l_classes LIKE ? OR l_classes = ?)"
+        cursor = connection_bdd.execute(req_sql, (int(est_eleve), f'%, {classe}%', f'%{classe}, %', f'{classe}'))
+    else:
+        req_sql = f"SELECT id, nom, prenom, l_classes, est_eleve, photo FROM t_individus WHERE (l_classes LIKE ? OR l_classes LIKE ? OR l_classes = ?)"
+        cursor = connection_bdd.execute(req_sql, (f'%, {classe}%', f'%{classe}, %', f'{classe}'))
+    return tuple(
+        (x[0], x[1], x[2], tuple(map(int, x[3].split(', '))), bool(x[4]), x[5]) for x in tuple(cursor.fetchall()))
 
 
 def liste_absences(connection_bdd, nom, prenom, classe):
@@ -336,11 +383,12 @@ def liste_absences(connection_bdd, nom, prenom, classe):
     
     >>> connection_bdd.close()
     """
-    req_sql = f"SELECT timestamp FROM t_absences INNER JOIN t_individus ON t_absences.id_individus = t_individus.id WHERE nom = '{nom}' AND prenom = '{prenom}' AND (l_classes LIKE '%, {classe}%' OR l_classes LIKE '%{classe}, %' OR l_classes = '{classe}')"
-    cursor = connection_bdd.execute(req_sql)
-    return tuple([ x[0] for x in cursor.fetchall()])
+    req_sql = f"SELECT timestamp FROM t_absences INNER JOIN t_individus ON t_absences.id_individus = t_individus.id WHERE nom = ? AND prenom = ? AND (l_classes LIKE ? OR l_classes LIKE ? OR l_classes = ?)"
+    cursor = connection_bdd.execute(req_sql, (nom, prenom, f'%, {classe}%', f'%{classe}, %', f'{classe}'))
+    return tuple([x[0] for x in cursor.fetchall()])
 
-"""def supp_classe(connection_bdd, id_classe):
+
+def supp_classe(connection_bdd, id_classe):
     """
     Supprime la classe donnée en paramètre.
     :param connection_bdd: connection à la base de donnée
@@ -359,20 +407,51 @@ def liste_absences(connection_bdd, nom, prenom, classe):
     >>> connection_bdd.close()
 
     """
-    for individu in liste_individus(connection_bdd, id_classe):
-        l_classe = list(individu[2])
+    for individu in liste_individus_avec_id(connection_bdd, id_classe):
+        l_classe = list(individu[3])
         l_classe.remove(id_classe)
         modifier_individu(connection_bdd, individu[0], {'l_classes': ', '.join(l_classe)})
-    req_sql = f'DELETE FROM t_classes WHERE id = {id_classe}'"""
+    req_sql = f'DELETE FROM t_classes WHERE id = ?'
+    cursor = connection_bdd.execute(req_sql, (id_classe, ))
+    connection_bdd.commit()
 
+
+def recherche_individu(connection_bdd, query):
+    """
+        Recherche un individu.
+        :param (sqlite3.Connection): Connection à la base de données
+        :param (str): query, partie du nom/prenom de l'individu
+        :return: tuple de tuple contenant les informations sur les individus trouvés
+
+        >>> shutil.copy('test_bdd/recherche_individus.db', 'bdd_test.db')
+        'bdd_test.db'
+        >>> connection_bdd = sqlite3.connect('bdd_test.db')
+
+        >>> recherche_individu(connection_bdd, 'Do')
+        (('Doe', 'John', (1,), True, None), ('Ronaldo', 'Cristiano', (1, 2), False, None))
+
+        >>> connection_bdd.close()
+        """
+    r_results = []
+    results = []
+    req_sql = [f'SELECT nom, prenom, l_classes, est_eleve, photo FROM t_individus WHERE nom LIKE ? ORDER BY nom',
+               f'SELECT nom, prenom, l_classes, est_eleve, photo FROM t_individus WHERE prenom LIKE ? ORDER BY prenom']
+    for req in req_sql:
+        cursor = connection_bdd.cursor()
+        cursor = cursor.execute(req, (f'%{query}%', ))
+        r_results.append(cursor.fetchall())
+    connection_bdd.commit()
+    for r_result in r_results:
+        for result in r_result:
+            if result not in results:
+                results.append(result)
+    return tuple((x[0], x[1], tuple(map(int, x[2].split(', '))), bool(x[3]), x[4]) for x in results)
 
 
 # Programme principal
-if __name__=='__main__':
+if __name__ == '__main__':
     import doctest
+
     doctest.testmod(optionflags=doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS, verbose=False)
     if 'supernote.db' not in os.listdir():
         creer_bdd('supernote')
-    
-
-
