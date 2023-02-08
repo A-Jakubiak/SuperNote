@@ -58,7 +58,7 @@ class pagesearchbox(Gtk.Box):
         # Ajout de la boite de résultat dans la boite pricipal
         self.box.append(self.scrolledwindow)
 
-        connection_bdd = sqlite3.connect('supernote.db')
+        connection_bdd = sqlite3.connect(configfile.bdd_path)
         self.updateresultlist(recherche_individu(connection_bdd, ''))
         connection_bdd.close()
 
@@ -80,7 +80,7 @@ class pagesearchbox(Gtk.Box):
 
 
     def search(self, widget):
-        connection_bdd = sqlite3.connect('supernote.db')
+        connection_bdd = sqlite3.connect(configfile.bdd_path)
         self.updateresultlist(recherche_individu(connection_bdd, widget.get_text()))
         connection_bdd.close()
     def btn_go_to_individual(self, widget):

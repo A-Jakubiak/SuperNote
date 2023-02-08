@@ -12,6 +12,7 @@ gi.require_version(
     "1"
 )
 from pages.pageclass import *
+import configfile
 
 
 class pageclasslistbox(Gtk.Box):
@@ -116,9 +117,9 @@ class pageclasslistbox(Gtk.Box):
 
 
     def on_btn_show_individuallistpage(self, widget):
-        connection_bdd= sqlite3.connect('supernote.db')
+        connection_bdd= sqlite3.connect(configfile.bdd_path)
         self.individuallistpage = pageclassbox(
-            liste_individus(connection_bdd, widget.classe))
+            liste_individus_avec_id(connection_bdd, widget.classe))
         self.leaflet.append(self.individuallistpage)
         self.leaflet.set_visible_child(self.individuallistpage)
         self.get_root().hide_viewswitcher()
@@ -135,7 +136,7 @@ class pageclasslistbox(Gtk.Box):
 
         lclasse = ()
         try:
-            connection_bdd = sqlite3.connect("supernote.db")
+            connection_bdd = sqlite3.connect(configfile.bdd_path)
             lclasse = liste_classe(connection_bdd)
             connection_bdd.close()
         except Exception as e:
@@ -202,7 +203,7 @@ class pageclasslistbox(Gtk.Box):
             infobar.connect('response', self.removeinfobar)
             self.prepend(infobar)
             return None
-        connection_bdd = sqlite3.connect("supernote.db")
+        connection_bdd = sqlite3.connect(configfile.bdd_path)
         try:
             for classe in liste_classe_nom_et_date(connection_bdd):
                 if nom_classe == classe[0] and annee_classe == classe[1]:
@@ -235,10 +236,11 @@ class pageclasslistbox(Gtk.Box):
         """
         print(widget.get_parent().get_parent().get_parent().classe)
         id_classe = widget.get_parent().get_parent().get_parent().classe
-        connection_bdd = sqlite3.connect("supernote.db")
+        connection_bdd = sqlite3.connect(configfile.bdd_path)
         supp_classe(connection_bdd, id_classe)
         connection_bdd.close()
         self.generate_class_list()
+        self.get_root().page3.update_class_list()
 
 
     def removeinfobar(self, widget, response):

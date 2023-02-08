@@ -70,7 +70,7 @@ def creer_bdd(nom_bdd):
     connection_bdd = sqlite3.connect(nom_bdd + '.db')
     creer_table(connection_bdd, 't_classes', {'nom': 'TEXT', 'annee': 'INTEGER'})
     creer_table(connection_bdd, 't_individus',
-                {'photo': 'TEXT', 'nom': 'INTEGER', 'prenom': 'TEXT', 'l_classes': 'TEXT', 'est_eleve': 'INTEGER'})
+                {'photo': 'TEXT', 'nom': 'TEXT', 'prenom': 'TEXT', 'l_classes': 'TEXT', 'est_eleve': 'INTEGER'})
     creer_table(connection_bdd, 't_absences', {'timestamp': 'INTEGER', 'id_individus': 'INTEGER'},
                 {'id_individus': 't_individus.id'})
     connection_bdd.commit()
@@ -127,7 +127,8 @@ def ajouter_individu(connection_bdd, photo, nom, prenom, classes, est_eleve):
     """
     cursor = connection_bdd.cursor()
     cursor.execute(
-        f"INSERT INTO t_individus (photo, nom, prenom, l_classes, est_eleve) VALUES (?, ?, ?, ?, ?)", (photo, nom, prenom, ', '.join(map(str, classes)), int(est_eleve)))
+        f"INSERT INTO t_individus (photo, nom, prenom, l_classes, est_eleve) VALUES (?, ?, ?, ?, ?)",
+        (photo, nom, prenom, ', '.join(map(str, classes)), int(est_eleve)))
 
 
 def ajouter_absence(connection_bdd, id_individus, timestamp=(int(time.time()) // (60 * 60)) * 60 * 60):
@@ -184,7 +185,7 @@ def modifier_individu(connection_bdd, id_individu, valeurs):
         if isinstance(valeurs[key], bool):
             valeurs[key] = int(valeurs[key])
         if isinstance(valeurs[key], list):
-            valeurs[key] = ', '.join(valeurs[key])
+            valeurs[key] = ', '.join(map(str, valeurs[key]))
         cursor = connection_bdd.cursor()
         cursor.execute(f"UPDATE t_individus SET {key} = ? WHERE id=?", (valeurs[key], id_individu))
 
@@ -290,7 +291,7 @@ def recuperer_nom_date_depuis_id(connection_bdd, id):
 
     """
     req_sql = f'SELECT nom, annee FROM t_classes WHERE id=?'
-    cursor = connection_bdd.execute(req_sql, (id, ))
+    cursor = connection_bdd.execute(req_sql, (id,))
     response = cursor.fetchall()
     if len(response) == 0:
         return None
@@ -328,7 +329,8 @@ def liste_individus(connection_bdd, classe, est_eleve=None):
         req_sql = f"SELECT nom, prenom, l_classes, est_eleve, photo FROM t_individus WHERE (l_classes LIKE ? OR l_classes LIKE ? OR l_classes = ?)"
         cursor = connection_bdd.execute(req_sql, (f'%, {classe}%', f'%{classe}, %', f'{classe}'))
 
-    return tuple((x[0], x[1], tuple(map(int, x[2].split(', '))), bool(x[3]), x[4]) for x in tuple(cursor.fetchall()))
+    return tuple((x[0], x[1], tuple(map(int, x[2].split(', '))) if x[2] else (()), bool(x[3]), x[4]) for x in
+                 tuple(cursor.fetchall()))
 
 
 def liste_individus_avec_id(connection_bdd, classe, est_eleve=None):
@@ -362,29 +364,28 @@ def liste_individus_avec_id(connection_bdd, classe, est_eleve=None):
         req_sql = f"SELECT id, nom, prenom, l_classes, est_eleve, photo FROM t_individus WHERE (l_classes LIKE ? OR l_classes LIKE ? OR l_classes = ?)"
         cursor = connection_bdd.execute(req_sql, (f'%, {classe}%', f'%{classe}, %', f'{classe}'))
     return tuple(
-        (x[0], x[1], x[2], tuple(map(int, x[3].split(', '))), bool(x[4]), x[5]) for x in tuple(cursor.fetchall()))
+        (x[0], x[1], x[2], tuple(map(int, x[3].split(', '))) if x[3] else (()), bool(x[4]), x[5]) for x in
+        tuple(cursor.fetchall()))
 
 
-def liste_absences(connection_bdd, nom, prenom, classe):
+def liste_absences(connection_bdd,id):
     """
     Donne la liste des absences d'un individu.
     :param (sqlite3.Connection): Connection à la base de données
-    :param (str): nom, nom de l'élève
-    :param (str): prenom, prenom de l'élève
-    :param (str): classe, id de la classe
+    :param (int): id, id de l'individu
     :return: tuple de tuple contenant les informations sur les individus
     
     >>> shutil.copy('test_bdd/liste_absences.db', 'bdd_test.db')
     'bdd_test.db'
     >>> connection_bdd = sqlite3.connect('bdd_test.db')
     
-    >>> liste_absences(connection_bdd, 'Doe', 'John', 1)
+    >>> liste_absences(connection_bdd, 1)
     (1671192000, 1671188400)
     
     >>> connection_bdd.close()
     """
-    req_sql = f"SELECT timestamp FROM t_absences INNER JOIN t_individus ON t_absences.id_individus = t_individus.id WHERE nom = ? AND prenom = ? AND (l_classes LIKE ? OR l_classes LIKE ? OR l_classes = ?)"
-    cursor = connection_bdd.execute(req_sql, (nom, prenom, f'%, {classe}%', f'%{classe}, %', f'{classe}'))
+    req_sql = f"SELECT timestamp FROM t_absences INNER JOIN t_individus ON t_absences.id_individus = t_individus.id WHERE t_individus.id = ?"
+    cursor = connection_bdd.execute(req_sql, (id, ))
     return tuple([x[0] for x in cursor.fetchall()])
 
 
@@ -412,7 +413,7 @@ def supp_classe(connection_bdd, id_classe):
         l_classe.remove(id_classe)
         modifier_individu(connection_bdd, individu[0], {'l_classes': ', '.join(l_classe)})
     req_sql = f'DELETE FROM t_classes WHERE id = ?'
-    cursor = connection_bdd.execute(req_sql, (id_classe, ))
+    cursor = connection_bdd.execute(req_sql, (id_classe,))
     connection_bdd.commit()
 
 
@@ -428,24 +429,25 @@ def recherche_individu(connection_bdd, query):
         >>> connection_bdd = sqlite3.connect('bdd_test.db')
 
         >>> recherche_individu(connection_bdd, 'Do')
-        (('Doe', 'John', (1,), True, None), ('Ronaldo', 'Cristiano', (1, 2), False, None))
+        ((1, 'Doe', 'John', (1,), True, None), (3, 'Ronaldo', 'Cristiano', (1, 2), False, None))
 
         >>> connection_bdd.close()
         """
     r_results = []
     results = []
-    req_sql = [f'SELECT nom, prenom, l_classes, est_eleve, photo FROM t_individus WHERE nom LIKE ? ORDER BY nom',
-               f'SELECT nom, prenom, l_classes, est_eleve, photo FROM t_individus WHERE prenom LIKE ? ORDER BY prenom']
+    req_sql = [f'SELECT id, nom, prenom, l_classes, est_eleve, photo FROM t_individus WHERE nom LIKE ? ORDER BY nom',
+               f'SELECT id, nom, prenom, l_classes, est_eleve, photo FROM t_individus WHERE prenom LIKE ? ORDER BY prenom']
     for req in req_sql:
         cursor = connection_bdd.cursor()
-        cursor = cursor.execute(req, (f'%{query}%', ))
+        cursor = cursor.execute(req, (f'%{query}%',))
         r_results.append(cursor.fetchall())
     connection_bdd.commit()
     for r_result in r_results:
         for result in r_result:
             if result not in results:
                 results.append(result)
-    return tuple((x[0], x[1], tuple(map(int, x[2].split(', '))), bool(x[3]), x[4]) for x in results)
+    return tuple(
+        (x[0], x[1], x[2], tuple(map(int, x[3].split(', '))) if x[3] else (()), bool(x[4]), x[5]) for x in results)
 
 
 # Programme principal
@@ -453,5 +455,5 @@ if __name__ == '__main__':
     import doctest
 
     doctest.testmod(optionflags=doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS, verbose=False)
-    if 'supernote.db' not in os.listdir():
+    if configfile.bdd_path not in os.listdir():
         creer_bdd('supernote')

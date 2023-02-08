@@ -179,7 +179,7 @@ class pageaddbox(Gtk.Box):
 
         connection_bdd = None
         try:
-            connection_bdd = sqlite3.connect("supernote.db")
+            connection_bdd = sqlite3.connect(configfile.bdd_path)
         except Exception as e:
             infobar = Gtk.InfoBar()
             infobar.add_child(Gtk.Label(label=f"Une erreur est survenue. \n\n {e}"))
@@ -237,7 +237,7 @@ class pageaddbox(Gtk.Box):
         for row in self.rows_listbox3:
             if row.suffix.get_state():
                 l_classe.append(row.classid)
-        connection_bdd = sqlite3.connect('supernote.db')
+        connection_bdd = sqlite3.connect(configfile.bdd_path)
         ajouter_individu(connection_bdd, chemin_photo, nom_individu, prenom_individu, l_classe, est_eleve)
         connection_bdd.commit()
         connection_bdd.close()

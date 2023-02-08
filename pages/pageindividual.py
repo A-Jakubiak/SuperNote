@@ -1,7 +1,7 @@
 import sys
 
 import gi
-
+import datetime
 gi.require_version(
     "Gtk",
     "4.0"
@@ -11,6 +11,9 @@ gi.require_version(
     "1"
 )
 from gi.repository import Gtk, Adw, GLib, Gio
+import back
+import configfile
+import sqlite3
 from pages.pageindividualmodifier import *
 
 
@@ -36,7 +39,7 @@ class pageindividualbox (Gtk.Box):
         self.clamp.set_child(self.box)
         self.scrolledwindow.set_child(self.clamp)
 
-        self.avatar = Adw.Avatar.new(128, f"{self.individual[0]}, {self.individual[1]}", True)
+        self.avatar = Adw.Avatar.new(128, f"{self.individual[1]}, {self.individual[2]}", True)
         self.avatar.set_margin_top(10)
         self.box.append(self.avatar)
 
@@ -61,7 +64,7 @@ class pageindividualbox (Gtk.Box):
             subtitle="Nom de l'individu"
         )
 
-        self.btn_listbox1_1_suffix = Gtk.Label(label=self.individual[0])
+        self.btn_listbox1_1_suffix = Gtk.Label(label=self.individual[1])
         self.row_listbox1_1.add_suffix(
             self.btn_listbox1_1_suffix
         )
@@ -76,7 +79,7 @@ class pageindividualbox (Gtk.Box):
             subtitle="Prénom de l'individu"
         )
 
-        self.btn_listbox1_2_suffix = Gtk.Label(label=self.individual[1])
+        self.btn_listbox1_2_suffix = Gtk.Label(label=self.individual[2])
         self.row_listbox1_2.add_suffix(
             self.btn_listbox1_2_suffix
         )
@@ -106,10 +109,6 @@ class pageindividualbox (Gtk.Box):
             subtitle="L'individu appartient au groupe élève."
         )
 
-        self.listbox2.append(
-            self.row_listbox2_1
-        )
-
         # Classes
         self.listbox3 = Gtk.ListBox(
             selection_mode=Gtk.SelectionMode.NONE
@@ -125,15 +124,7 @@ class pageindividualbox (Gtk.Box):
         self.box.append(self.prfgr_listbox3)
         self.box.append(self.listbox3)
 
-        # Row 1
-        self.row_listbox3_1 = Adw.ActionRow(
-            title='Classe Test',
-            subtitle="L'individu appartient à la classe classe test."
-        )
-
-        self.listbox3.append(
-            self.row_listbox3_1
-        )
+        self.list_row_classe = []
 
         # absences
 
@@ -148,29 +139,7 @@ class pageindividualbox (Gtk.Box):
 
         self.listbox4.get_style_context().add_class('boxed-list')
 
-        # Row 1
-        self.row_listbox4_1 = Adw.ActionRow(
-            title='23/12/2022',
-            subtitle="L'individu a été absent le 23/12/2022 pendant 1H"
-        )
-
-        self.btn_listbox4_1_suffix1 = Gtk.Label(label="1H")
-        self.row_listbox4_1.add_suffix(
-            self.btn_listbox4_1_suffix1
-        )
-
-        self.btn_listbox4_1_suffix2 = Gtk.Button.new_from_icon_name('edit-delete-symbolic')
-        self.btn_listbox4_1_suffix2.get_style_context().add_class('circular')
-        self.btn_listbox4_1_suffix2.get_style_context().add_class('destructive-action')
-        self.btn_listbox4_1_suffix2.set_margin_top(13)
-        self.btn_listbox4_1_suffix2.set_margin_bottom(13)
-        self.row_listbox4_1.add_suffix(
-            self.btn_listbox4_1_suffix2
-        )
-
-        self.listbox4.append(
-            self.row_listbox4_1
-        )
+        self.list_row_abs = []
 
         self.box.append(self.prfgr_listbox4)
         self.box.append(self.listbox4)
@@ -232,6 +201,7 @@ class pageindividualbox (Gtk.Box):
         self.box.append(self.listbox5)
 
         self.addabsbutton=Gtk.Button(label="Ajouter")
+        self.addabsbutton.connect('clicked', self.btn_ajouter_absence)
         self.box.append(self.addabsbutton)
         self.addabsbutton.set_margin_top(5)
 
@@ -252,6 +222,80 @@ class pageindividualbox (Gtk.Box):
         # page de modification
         self.modifierpage = pageindividualmodifierbox(self.individual)
         self.leaflet.append(self.modifierpage)
+
+        self.generate()
+
+    def generate(self):
+        if self.individual[4]:
+            self.listbox2.append(
+                self.row_listbox2_1
+            )
+        else:
+            try:
+                self.listbox2.remove(self.listbox2.get_row_at_index(0))
+            except:
+                pass
+
+        for row in self.list_row_classe:
+            self.listbox3.remove(row)
+
+        self.list_row_classe = []
+        connection_bdd = sqlite3.connect(configfile.bdd_path)
+        for classe in self.individual[3]:
+            self.list_row_classe.append(Adw.ActionRow(
+                title=', '.join(map(str,recuperer_nom_date_depuis_id(connection_bdd, classe))),
+                subtitle=f"L'individu appartient à la classe {', '.join(map(str, recuperer_nom_date_depuis_id(connection_bdd, classe)))}."
+            ))
+
+
+            self.listbox3.append(
+                self.list_row_classe[-1]
+            )
+
+        for row in self.list_row_abs:
+            self.listbox4.remove(row)
+
+        self.list_row_abs = []
+
+        for absence in liste_absences(connection_bdd, self.individual[0]):
+            self.list_row_abs.append( Adw.ActionRow(
+                title=datetime.datetime.utcfromtimestamp(absence).strftime("%d/%m/%y"),
+                subtitle=f"L'individu a été absent le 23/12/2022 à {datetime.datetime.utcfromtimestamp(absence).strftime('%H')}H"
+            ))
+
+            self.list_row_abs[-1].suffix1 = Gtk.Label(label=f"{datetime.datetime.utcfromtimestamp(absence).strftime('%H')}H")
+            self.list_row_abs[-1].add_suffix(
+                self.list_row_abs[-1].suffix1
+            )
+
+            self.list_row_abs[-1].suffix2 = Gtk.Button.new_from_icon_name('edit-delete-symbolic')
+            self.list_row_abs[-1].suffix2.get_style_context().add_class('circular')
+            self.list_row_abs[-1].suffix2.get_style_context().add_class('destructive-action')
+            self.list_row_abs[-1].suffix2.set_margin_top(13)
+            self.list_row_abs[-1].suffix2.set_margin_bottom(13)
+            self.list_row_abs[-1].add_suffix(
+                self.list_row_abs[-1].suffix2
+            )
+
+            self.listbox4.append(
+                self.list_row_abs[-1]
+            )
+
+
+        connection_bdd.close()
+    def btn_ajouter_absence(self, widget):
+        date = self.calendar.get_date().get_utc_offset()
+        heure= self.btn_listbox5_1_suffix.get_value()
+        nb_absences = self.btn_listbox5_2_suffix.get_value()
+        timestamp = date + heure*60*60 + 60*2
+
+        connection_bdd = sqlite3.connect(configfile.bdd_path)
+        for h in range(nb_absences):
+            ajouter_absence(connection_bdd, self.individual[0], timestamp + h*60*60)
+
+        connection_bdd.commit()
+        connection_bdd.close()
+
 
     def leaflet_go_back(self, widget):
         self.get_parent().set_visible_child(self.get_parent().get_pages()[0].get_child())

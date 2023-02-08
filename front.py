@@ -198,7 +198,7 @@ class MyApp(Adw.Application):
         self.win.present()
 
 
-if 'supernote.db' not in os.listdir():
+if configfile.bdd_path not in os.listdir():
     creer_bdd('supernote')
 
 app = MyApp(
