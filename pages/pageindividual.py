@@ -10,6 +10,10 @@ gi.require_version(
     "Adw",
     "1"
 )
+gi.require_version(
+    "GLib",
+    "2.0"
+)
 from gi.repository import Gtk, Adw, GLib, Gio
 import back
 import configfile
@@ -260,7 +264,7 @@ class pageindividualbox (Gtk.Box):
         for absence in liste_absences(connection_bdd, self.individual[0]):
             self.list_row_abs.append( Adw.ActionRow(
                 title=datetime.datetime.utcfromtimestamp(absence).strftime("%d/%m/%y"),
-                subtitle=f"L'individu a été absent le 23/12/2022 à {datetime.datetime.utcfromtimestamp(absence).strftime('%H')}H"
+                subtitle=f"L'individu a été absent le {datetime.datetime.utcfromtimestamp(absence).strftime('%d/%m/%y')} à {datetime.datetime.utcfromtimestamp(absence).strftime('%H')}H"
             ))
 
             self.list_row_abs[-1].suffix1 = Gtk.Label(label=f"{datetime.datetime.utcfromtimestamp(absence).strftime('%H')}H")
@@ -271,6 +275,9 @@ class pageindividualbox (Gtk.Box):
             self.list_row_abs[-1].suffix2 = Gtk.Button.new_from_icon_name('edit-delete-symbolic')
             self.list_row_abs[-1].suffix2.get_style_context().add_class('circular')
             self.list_row_abs[-1].suffix2.get_style_context().add_class('destructive-action')
+            self.list_row_abs[-1].suffix2.idind = self.individual[0]
+            self.list_row_abs[-1].suffix2.timestamp = absence
+            self.list_row_abs[-1].suffix2.connect('clicked', self.btn_supprimmer_absence)
             self.list_row_abs[-1].suffix2.set_margin_top(13)
             self.list_row_abs[-1].suffix2.set_margin_bottom(13)
             self.list_row_abs[-1].add_suffix(
@@ -284,17 +291,24 @@ class pageindividualbox (Gtk.Box):
 
         connection_bdd.close()
     def btn_ajouter_absence(self, widget):
-        date = self.calendar.get_date().get_utc_offset()
+        date = int(self.calendar.get_date().difference(GLib.DateTime.new_utc(1970, 1, 1, 0, 0, 0))/1000000/60/60/24)*60*60*24
         heure= self.btn_listbox5_1_suffix.get_value()
         nb_absences = self.btn_listbox5_2_suffix.get_value()
         timestamp = date + heure*60*60 + 60*2
 
         connection_bdd = sqlite3.connect(configfile.bdd_path)
-        for h in range(nb_absences):
+        for h in range(int(nb_absences)):
             ajouter_absence(connection_bdd, self.individual[0], timestamp + h*60*60)
 
         connection_bdd.commit()
         connection_bdd.close()
+        self.generate()
+    def btn_supprimmer_absence(self, widget):
+        connection_bdd = sqlite3.connect(configfile.bdd_path)
+        supprimer_absence(connection_bdd, widget.timestamp, widget.idind)
+        connection_bdd.commit()
+        connection_bdd.close()
+        self.generate()
 
 
     def leaflet_go_back(self, widget):

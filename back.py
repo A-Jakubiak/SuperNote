@@ -449,6 +449,33 @@ def recherche_individu(connection_bdd, query):
     return tuple(
         (x[0], x[1], x[2], tuple(map(int, x[3].split(', '))) if x[3] else (()), bool(x[4]), x[5]) for x in results)
 
+def supprimer_absence(connection_bdd, timestamp, id_ind):
+    """
+    Supprime l'absence d'un individu
+    :param connection_bdd: Connection a la base de données
+    :type connection_bdd: sqlite3.Connection
+    :param timestamp: Timestamp de l'absence
+    :type timestamp: int
+    :param id_ind: id de l'individu
+    :type id_ind: id
+    :return: None
+    :rtype: None
+
+    >>> shutil.copy('test_bdd/supprimer_absence.db', 'bdd_test.db')
+    'bdd_test.db'
+    >>> connection_bdd = sqlite3.connect('bdd_test.db')
+
+    >>> liste_absences(connection_bdd, 1)
+    (1677369720,)
+
+    >>> supprimer_absence(connection_bdd, 1677369720, 1)
+
+    >>> liste_absences(connection_bdd, 1)
+    ()
+    >>> connection_bdd.close()
+    """
+    req_sql = f"DELETE FROM t_absences WHERE t_absences.timestamp = ? AND t_absences.id_individus = ?"
+    cursor = connection_bdd.execute(req_sql, (timestamp, id_ind))
 
 # Programme principal
 if __name__ == '__main__':

@@ -224,6 +224,16 @@ class pageindividualmodifierbox (Gtk.Box):
         connection_bdd.commit()
         connection_bdd.close()
         self.get_parent().set_visible_child(self.get_parent().get_parent().scrolledwindow)
+        self.get_parent().get_parent().leaflet_go_back(widget)
+        try:
+            self.get_parent().get_parent().get_parent().get_parent().leaflet_go_back(widget)
+        except AttributeError:
+            pass
+        try:
+            widget.get_root().page2.updateresultlist()
+        except:
+            pass
+
 
     def show_file_chooser(self, widget):
         self.filechooserdialog.show()

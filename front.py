@@ -181,6 +181,7 @@ class MainWindow(Adw.ApplicationWindow):
         self.viewswitcherbar.set_visible(True)
         self.viewswitcher_wide.set_visible(True)
         self.viewswitcher_narrow.set_visible(True)
+        self.page2.updateresultlist()
 
 
 class MyApp(Adw.Application):

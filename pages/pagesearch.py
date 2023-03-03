@@ -59,11 +59,13 @@ class pagesearchbox(Gtk.Box):
         self.box.append(self.scrolledwindow)
 
         connection_bdd = sqlite3.connect(configfile.bdd_path)
-        self.updateresultlist(recherche_individu(connection_bdd, ''))
+        self.updateresultlist()
         connection_bdd.close()
 
-    def updateresultlist(self, rl):
-        self.resultlist = rl
+    def updateresultlist(self):
+        connection_bdd = sqlite3.connect(configfile.bdd_path)
+        self.resultlist = recherche_individu(connection_bdd, self.searchentry.get_text())
+        connection_bdd.close()
         for widget in self.resultwidgets:
             self.resultbox.remove(widget)
             self.leaflet.remove(widget.pageindividual)
@@ -80,9 +82,9 @@ class pagesearchbox(Gtk.Box):
 
 
     def search(self, widget):
-        connection_bdd = sqlite3.connect(configfile.bdd_path)
-        self.updateresultlist(recherche_individu(connection_bdd, widget.get_text()))
-        connection_bdd.close()
+
+        self.updateresultlist(recherche_individu(connection_bdd))
+
     def btn_go_to_individual(self, widget):
         self.leaflet.set_visible_child(widget.pageindividual)
         self.get_root().hide_viewswitcher()
