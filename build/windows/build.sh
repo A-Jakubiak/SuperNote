@@ -1,7 +1,8 @@
 #!/bin/sh
 
 # This script is meant to be run through MinGW
-
+mv ../../configfile.py ../../configfile.py.old
+cp configfile.py ../../
 APP=SuperNote
 
 echo "Setting up virtual environment..."
@@ -40,3 +41,4 @@ rm -r build
 rm -r dist/*/*
 rm -r dist
 rm -r venv
+mv ../../configfile.py.old ../../configfile.py
