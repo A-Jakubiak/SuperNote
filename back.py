@@ -25,6 +25,7 @@ import os
 import datetime
 import time
 import shutil
+import configfile
 
 
 def creer_table(connection_bdd, nom_table, attributs, cles_etrangeres={}):
@@ -483,4 +484,4 @@ if __name__ == '__main__':
 
     doctest.testmod(optionflags=doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS, verbose=False)
     if configfile.bdd_path not in os.listdir():
-        creer_bdd('supernote')
+        creer_bdd(configfile.bdd_path)
