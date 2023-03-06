@@ -63,12 +63,12 @@ def creer_bdd(nom_bdd):
     créer une base de donnée avec les tables pour l'application
     :param (str): nom de la base de donnée
     
-    >>> creer_bdd('bdd_test')
+    >>> creer_bdd('bdd_test'.db)
     >>> 'bdd_test.db' in os.listdir()
     True
     >>> os.remove('bdd_test.db')
     """
-    connection_bdd = sqlite3.connect(nom_bdd + '.db')
+    connection_bdd = sqlite3.connect(nom_bdd)
     creer_table(connection_bdd, 't_classes', {'nom': 'TEXT', 'annee': 'INTEGER'})
     creer_table(connection_bdd, 't_individus',
                 {'photo': 'TEXT', 'nom': 'TEXT', 'prenom': 'TEXT', 'l_classes': 'TEXT', 'est_eleve': 'INTEGER'})

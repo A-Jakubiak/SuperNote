@@ -200,7 +200,7 @@ class MyApp(Adw.Application):
 
 
 if configfile.bdd_path not in os.listdir():
-    creer_bdd('supernote')
+    creer_bdd(configfile.bdd_path)
 
 app = MyApp(
     application_id='fr.ajmf.supernote'
